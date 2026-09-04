@@ -1,0 +1,16 @@
+{
+  "project_id": 19836,
+  "project_path": "matrixlab/sci-ad-shadows/autodock-vina_v3_adms_xj",
+  "project_web_url": "https://git.gewu-lab.ai/matrixlab/sci-ad-shadows/autodock-vina_v3_adms_xj",
+  "title": "Differentiable full Vina scoring surface: SF_VINA recombination, per-term decomposition, and AD4/Vinardo families",
+  "classification": "upstream_parity_gap",
+  "body_sha256": "83dfd20996eebd2bbf0731dc5d934fff69e3e57b2df0766cc323876136cb4438",
+  "package_commit": "955ec33c019cdcdbc4c0aeaa0c5394accb9de95c",
+  "review_path": ".package-reviews/vina/bench/public/0.1.0/TASK_CAPABILITY_REVIEW.md",
+  "submit": true,
+  "receipt": "receipts/ISSUE_SUBMISSION_RECEIPT_full_vina_scoring_surface.json",
+  "created_at": "2026-09-04T08:51:20.030332+00:00",
+  "iid": 1,
+  "issue_id": 521,
+  "web_url": "https://git.gewu-lab.ai/matrixlab/sci-ad-shadows/autodock-vina_v3_adms_xj/-/work_items/1"
+}

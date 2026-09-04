@@ -1,0 +1,16 @@
+{
+  "project_id": 19836,
+  "project_path": "matrixlab/sci-ad-shadows/autodock-vina_v3_adms_xj",
+  "project_web_url": "https://git.gewu-lab.ai/matrixlab/sci-ad-shadows/autodock-vina_v3_adms_xj",
+  "title": "Add differentiable affinity maps and grid interpolation for pose optimization",
+  "classification": "upstream_parity_gap",
+  "body_sha256": "34145c630cb987a5e628e9763900576fdd34a27d5cd6178436c71d4c3fef011c",
+  "package_commit": "955ec33c019cdcdbc4c0aeaa0c5394accb9de95c",
+  "review_path": ".package-reviews/vina/bench/public/0.1.0/TASK_CAPABILITY_REVIEW.md",
+  "submit": true,
+  "receipt": "receipts/ISSUE_SUBMISSION_RECEIPT_affinity_maps_grid.json",
+  "created_at": "2026-09-04T08:51:24.453177+00:00",
+  "iid": 2,
+  "issue_id": 522,
+  "web_url": "https://git.gewu-lab.ai/matrixlab/sci-ad-shadows/autodock-vina_v3_adms_xj/-/work_items/2"
+}
