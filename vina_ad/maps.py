@@ -921,6 +921,10 @@ def _interpolate_grid_jvp(tangents: dict[str, Any], grid_values: Any, coordinate
     if tangent_rows is not None and len(tangent_rows) != len(rows):
         raise ValueError("coordinates tangent must have shape (N, 3)")
     if grid_tangent is not ZERO:
+        if isinstance(grid_tangent, AffinityGrid):
+            if not (_same_vector(grid_tangent.center, geometry.center) and _same_vector(grid_tangent.spacing, geometry.spacing) and grid_tangent.shape == geometry.shape):
+                raise ValueError("grid tangent geometry must match the primal AffinityGrid")
+            grid_tangent = grid_tangent.values
         _shape3(grid_tangent)
     outputs = []
     for index, row in enumerate(rows):
