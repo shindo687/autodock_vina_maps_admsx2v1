@@ -431,6 +431,21 @@ def _restore_vector(original: Any, values: tuple[float, float, float]) -> Any:
     return list(values)
 
 
+def _restore_map_mapping(original: Any, family: AffinityMaps, values: Mapping[int, Any]) -> Any:
+    """Restore a raw mapping's original (possibly named) keys in a pullback."""
+    if isinstance(original, AffinityMaps):
+        return family.with_values(values)
+    restored: dict[Any, Any] = {}
+    for original_key in original:
+        key = _as_type(original_key)
+        canonical = _XS_BASE_TYPE.get(key, key)
+        if canonical in values:
+            restored[original_key] = values[canonical]
+        elif key in values:
+            restored[original_key] = values[key]
+    return restored
+
+
 def interpolate_grid(
     grid_values: Any,
     coordinates: Any,
@@ -575,7 +590,7 @@ def _interpolate_maps_vjp(wrt: tuple[str, ...], maps: AffinityMaps | Mapping[Any
                 key = _XS_BASE_TYPE.get(atom_type, atom_type)
                 for i, j, k, weight in weights:
                     _add_grid_value(scaled[key], i, j, k, float(cotangents[row]) * weight)
-            result["maps"] = family.with_values(scaled) if isinstance(maps, AffinityMaps) else scaled
+            result["maps"] = _restore_map_mapping(maps, family, scaled)
         if "coordinates" in wrt:
             result["coordinates"] = _restore_rows(original_coordinates, [[float(cotangents[i]) * component for component in coordinate_gradient[i]] for i in range(len(rows))])
         return result
@@ -980,7 +995,7 @@ def _score_affinity_maps_vjp(wrt: tuple[str, ...], maps: AffinityMaps | Mapping[
                         for k in range(map_gradient.shape[2]):
                             value_at = _grid_value(grid, i, j, k)
                             _add_grid_value(source, i, j, k, factor * value_at)
-            result["maps"] = family.with_values(scaled) if isinstance(maps, AffinityMaps) else scaled
+            result["maps"] = _restore_map_mapping(maps, family, scaled)
         if "coordinates" in wrt:
             result["coordinates"] = _restore_rows(original_coordinates, [[factor * component for component in row] for row in local_gradient])
         if "translation" in wrt:
