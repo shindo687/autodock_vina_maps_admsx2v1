@@ -91,5 +91,37 @@ deferred or not suitable for AD.
 - Fresh no-dependency installs must preserve ChainRules 0.1.0 tangent/wrt
   validation and contextual `UnsupportedWrt` attributes.
 
-The complete C++ grid/search engine, grid interpolation derivatives, topology
-construction, and all deferred/not-suitable methods are outside this scope.
+The complete C++ grid-generation/search engine, topology construction, and all
+deferred/not-suitable methods are outside this scope; supplied-map interpolation
+and pose composition are implemented below.
+
+## Differentiable affinity-map surface
+
+`vina_ad.AffinityGrid(values, center, spacing, box_size=None)` records one
+three-dimensional grid. `AffinityMaps(values, center, spacing, box_size=None)`
+stores a non-empty mapping from integer or named X-Score atom types to grids;
+all grids must share shape and provenance. In both classes the number of
+samples is the upstream `NELEMENTS + 1`, the origin is
+`center - 0.5 * box_size`, and `box_size = (shape - 1) * spacing` when omitted.
+`load_maps(prefix)` parses the six-line Vina map header and x-fastest, then
+y/z, data order. AD4 map suffixes are rejected rather than interpreted as
+X-Score maps.
+
+`interpolate_grid(grid_values, coordinates, center=..., spacing=...)` returns
+one trilinear value per coordinate and has JVP/VJP rules for `grid_values` and
+`coordinates`. `score_affinity_maps(maps, coordinates, atom_types,
+translation=..., rotation=...)` sums the selected atom-type samples after a
+Rodrigues rotation-vector transform followed by translation. Its registered
+active inputs are `maps`, `coordinates`, `translation`, and `rotation`; the
+map-value pullback has the same `AffinityMaps` geometry and sparse trilinear
+corner weights. As in upstream `cache::eval`, the default `clip_value=1000`
+applies the positive-value curl `1000*e/(1000+e)` and its chain-rule factor;
+`clip_value=None` returns the raw interpolated sum. `score_maps`, `grid_score`,
+and `pose_score` are aliases. `score_pose`/`pose_score` additionally accept a
+single six-vector `(tx, ty, tz, rx, ry, rz)` and expose its JVP/VJP as `pose`.
+
+Map generation (`compute_vina_maps`) remains an imperative upstream call. A
+query outside the physical box raises `GridBoundaryError` in the primal. A
+coordinate/pose derivative at a grid node or cell boundary raises
+`NonDifferentiablePoint`; map-only derivatives at that point are still
+well-defined because the interpolation weights have a value there.

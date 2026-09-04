@@ -48,6 +48,90 @@
       "dependency_chain": "alias -> score_coordinates",
       "oracle": "tests/test_score.py::test_source_formula_oracle",
       "decision": "implemented alias"
+    },
+    "vina_ad.AffinityGrid": {
+      "status": "implemented",
+      "reason": "validated one-grid container with Vina map provenance",
+      "primal": "three-dimensional affinity values plus center, box_size, spacing, origin and shape",
+      "differentiable_inputs": ["values"],
+      "fixed_inputs": ["center", "box_size", "spacing", "source"],
+      "derivative_interface": "container used by interpolate_grid and score_affinity_maps",
+      "math_convention": "sample shape is NELEMENTS + 1; x-fastest map order",
+      "dependency_chain": "AffinityGrid -> trilinear interpolation geometry",
+      "oracle": "tests/test_maps.py::test_trilinear_interpolation_and_coordinate_map_derivative",
+      "decision": "implemented"
+    },
+    "vina_ad.AffinityMaps": {
+      "status": "implemented",
+      "reason": "validated shared-provenance X-Score map family",
+      "primal": "atom-type to grid values with recorded center, box_size and spacing",
+      "differentiable_inputs": ["values"],
+      "fixed_inputs": ["center", "box_size", "spacing", "source"],
+      "derivative_interface": "map pullback preserves AffinityMaps geometry",
+      "math_convention": "macrocycle closure types resolve to C_H/C_P maps",
+      "dependency_chain": "AffinityMaps -> atom-type selection -> trilinear interpolation",
+      "oracle": "tests/test_maps.py::test_load_maps_records_vina_header_and_matches_map_score",
+      "decision": "implemented"
+    },
+    "vina_ad.load_maps": {
+      "status": "implemented",
+      "reason": "imperative parser at the differentiable map boundary",
+      "primal": "loads Vina map-family files and records header provenance",
+      "differentiable_inputs": [],
+      "fixed_inputs": ["map prefix and serialized files"],
+      "derivative_interface": "none; returned AffinityMaps values are active in scoring",
+      "math_convention": "SPACING, NELEMENTS, CENTER and x-fastest data order",
+      "dependency_chain": "load_maps -> map headers/data -> AffinityMaps",
+      "oracle": "tests/test_maps.py::test_load_maps_records_vina_header_and_matches_map_score",
+      "decision": "implemented parser; compute_vina_maps remains upstream imperative"
+    },
+    "vina_ad.interpolate_grid": {
+      "status": "implemented",
+      "reason": "differentiable Vina-compatible trilinear interpolation",
+      "primal": "one interpolated value per Cartesian coordinate",
+      "differentiable_inputs": ["grid_values", "coordinates"],
+      "fixed_inputs": ["center", "box_size", "spacing"],
+      "derivative_interface": "JVP/VJP/grad/value_and_grad",
+      "math_convention": "piecewise trilinear; boundary nodes are non-differentiable",
+      "dependency_chain": "grid_values + provenance -> cell lookup -> eight-corner interpolation",
+      "oracle": "tests/test_maps.py::test_map_value_jvp_and_vjp_are_trilinear_weights",
+      "decision": "implemented"
+    },
+    "vina_ad.interpolate_maps": {
+      "status": "implemented",
+      "reason": "atom-type map-family interpolation without pose transformation",
+      "primal": "one selected-map value per Cartesian coordinate",
+      "differentiable_inputs": ["maps", "coordinates"],
+      "fixed_inputs": ["atom_types", "map provenance"],
+      "derivative_interface": "JVP/VJP/grad/value_and_grad",
+      "math_convention": "piecewise trilinear; boundary nodes are non-differentiable for coordinate derivatives",
+      "dependency_chain": "maps + atom_types -> map lookup -> eight-corner interpolation",
+      "oracle": "manual protocol smoke and tests/test_maps.py map-weight coverage",
+      "decision": "implemented"
+    },
+    "vina_ad.score_affinity_maps": {
+      "status": "implemented",
+      "reason": "atom-type map score with pose-transform composition",
+      "primal": "sum of selected atom-type map samples after Rodrigues rotation and translation",
+      "differentiable_inputs": ["maps", "coordinates", "translation", "rotation"],
+      "fixed_inputs": ["atom_types", "map provenance", "clip_value"],
+      "derivative_interface": "JVP/VJP/grad/value_and_grad",
+      "math_convention": "rotation vector uses exp([r]x), then q=R*x+t; default cache-style positive-value curl at 1000",
+      "dependency_chain": "pose transform -> map selection -> trilinear interpolation -> sum",
+      "oracle": "tests/test_maps.py::test_affinity_maps_pose_chain_rule_matches_finite_difference",
+      "decision": "implemented; search-loop and map generation derivatives remain deferred"
+    },
+    "vina_ad.score_pose": {
+      "status": "implemented",
+      "reason": "six-vector pose convenience wrapper over score_affinity_maps",
+      "primal": "same map score with pose=(tx, ty, tz, rx, ry, rz)",
+      "differentiable_inputs": ["maps", "coordinates", "pose"],
+      "fixed_inputs": ["atom_types", "map provenance", "clip_value"],
+      "derivative_interface": "JVP/VJP/grad/value_and_grad",
+      "math_convention": "pose splits into Rodrigues rotation and Cartesian translation",
+      "dependency_chain": "score_pose -> score_affinity_maps -> interpolation",
+      "oracle": "tests/test_maps.py::test_affinity_maps_pose_chain_rule_matches_finite_difference",
+      "decision": "implemented convenience wrapper"
     }
   },
   "upstream_public_api": [

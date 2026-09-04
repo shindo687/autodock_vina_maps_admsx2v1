@@ -4,8 +4,9 @@
 not described as a real docking workflow.  ``run_official_workflow`` loads the
 official example PDBQT files, invokes the real ``vina.Vina`` binding when it is
 installed, and runs the restricted sidecar through public AD interfaces on the
-sourced receptor/ligand pair set.  Full grid/search derivatives remain out of
-scope.
+sourced receptor/ligand pair set.  Supplied-map interpolation is covered by
+`vina_ad.score_affinity_maps`; full map generation and search-loop derivatives
+remain out of scope.
 """
 
 from __future__ import annotations
@@ -221,8 +222,9 @@ def run_official_workflow(
         "ad_jvp_evaluations": 1.0,
         "finite_difference_evaluations": 2.0,
         "remaining_coverage": (
-            "full Vina grid interpolation, pose optimization, and stochastic "
-            "docking derivatives remain deferred; AD covers fixed SF_VINA "
+            "supplied-map grid interpolation and pose-transform derivatives are "
+            "implemented; full Vina search-loop, map-generation, and stochastic "
+            "docking derivatives remain deferred; AD also covers fixed SF_VINA "
             "receptor/ligand cross pairs"
         ),
     }
