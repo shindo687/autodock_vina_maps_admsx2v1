@@ -4,6 +4,8 @@ from .core import DEFAULT_VINA_WEIGHTS, energy, score, score_coordinates
 from .maps import (
     AffinityGrid,
     AffinityMaps,
+    GridMap,
+    MapFamily,
     GridBoundaryError,
     grid_score,
     interpolate,
@@ -39,6 +41,8 @@ __all__ = [
     "NonDifferentiablePoint",
     "AffinityGrid",
     "AffinityMaps",
+    "GridMap",
+    "MapFamily",
     "GridBoundaryError",
     "load_maps",
     "interpolate_grid",

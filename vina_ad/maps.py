@@ -434,7 +434,6 @@ def _restore_vector(original: Any, values: tuple[float, float, float]) -> Any:
 def interpolate_grid(
     grid_values: Any,
     coordinates: Any,
-    *,
     center: Sequence[float] | None = None,
     spacing: float | Sequence[float] | None = None,
     box_size: Sequence[float] | None = None,
@@ -480,7 +479,7 @@ def _map_values_for_tangent(tangent: Any, primal: AffinityMaps) -> AffinityMaps:
     return AffinityMaps(filled, primal.center, primal.spacing, primal.box_size)
 
 
-def interpolate_maps(maps: AffinityMaps | Mapping[Any, Any], coordinates: Any, atom_types: Any, *, center: Any = None, spacing: Any = None) -> tuple[float, ...]:
+def interpolate_maps(maps: AffinityMaps | Mapping[Any, Any], coordinates: Any, atom_types: Any, center: Any = None, spacing: Any = None) -> tuple[float, ...]:
     """Interpolate the atom-type map selected by each atom type."""
     family = _map_family(maps, center=center, spacing=spacing)
     rows = _coordinate_rows(coordinates)
@@ -517,7 +516,7 @@ def _interpolate_maps_linearisation(
 
 
 @rules.jvp_for(interpolate_maps)
-def _interpolate_maps_jvp(tangents: dict[str, Any], maps: AffinityMaps | Mapping[Any, Any], coordinates: Any, atom_types: Any, *, center: Any = None, spacing: Any = None) -> tuple[tuple[float, ...], Any]:
+def _interpolate_maps_jvp(tangents: dict[str, Any], maps: AffinityMaps | Mapping[Any, Any], coordinates: Any, atom_types: Any, center: Any = None, spacing: Any = None) -> tuple[tuple[float, ...], Any]:
     supported = {"maps", "coordinates"}
     unsupported = set(tangents) - supported
     if unsupported:
@@ -543,7 +542,7 @@ def _interpolate_maps_jvp(tangents: dict[str, Any], maps: AffinityMaps | Mapping
 
 
 @rules.vjp_for(interpolate_maps)
-def _interpolate_maps_vjp(wrt: tuple[str, ...], maps: AffinityMaps | Mapping[Any, Any], coordinates: Any, atom_types: Any, *, center: Any = None, spacing: Any = None) -> tuple[tuple[float, ...], Any]:
+def _interpolate_maps_vjp(wrt: tuple[str, ...], maps: AffinityMaps | Mapping[Any, Any], coordinates: Any, atom_types: Any, center: Any = None, spacing: Any = None) -> tuple[tuple[float, ...], Any]:
     supported = {"maps", "coordinates"}
     unsupported = set(wrt) - supported
     if unsupported:
@@ -815,10 +814,12 @@ def _score_pose_vjp(wrt: tuple[str, ...], maps: AffinityMaps | Mapping[Any, Any]
 
 
 pose_score = score_pose
+GridMap = AffinityGrid
+MapFamily = AffinityMaps
 
 
 @rules.jvp_for(interpolate_grid)
-def _interpolate_grid_jvp(tangents: dict[str, Any], grid_values: Any, coordinates: Any, *, center: Sequence[float] | None = None, spacing: float | Sequence[float] | None = None, box_size: Sequence[float] | None = None) -> tuple[tuple[float, ...], Any]:
+def _interpolate_grid_jvp(tangents: dict[str, Any], grid_values: Any, coordinates: Any, center: Sequence[float] | None = None, spacing: float | Sequence[float] | None = None, box_size: Sequence[float] | None = None) -> tuple[tuple[float, ...], Any]:
     supported = {"grid_values", "coordinates"}
     unsupported = set(tangents) - supported
     if unsupported:
@@ -855,7 +856,7 @@ def _interpolate_grid_jvp(tangents: dict[str, Any], grid_values: Any, coordinate
 
 
 @rules.vjp_for(interpolate_grid)
-def _interpolate_grid_vjp(wrt: tuple[str, ...], grid_values: Any, coordinates: Any, *, center: Sequence[float] | None = None, spacing: float | Sequence[float] | None = None, box_size: Sequence[float] | None = None) -> tuple[tuple[float, ...], Any]:
+def _interpolate_grid_vjp(wrt: tuple[str, ...], grid_values: Any, coordinates: Any, center: Sequence[float] | None = None, spacing: float | Sequence[float] | None = None, box_size: Sequence[float] | None = None) -> tuple[tuple[float, ...], Any]:
     supported = {"grid_values", "coordinates"}
     unsupported = set(wrt) - supported
     if unsupported:
@@ -1063,7 +1064,7 @@ def load_maps(map_prefix: str | Path) -> AffinityMaps:
 
 
 __all__ = [
-    "AffinityGrid", "AffinityMaps", "GridBoundaryError", "load_maps",
+    "AffinityGrid", "AffinityMaps", "GridMap", "MapFamily", "GridBoundaryError", "load_maps",
     "interpolate_grid", "trilinear_interpolate", "interpolate", "interpolate_map", "interpolate_maps",
     "transform_pose", "score_affinity_maps", "score_maps", "grid_score", "score_grid", "map_score", "pose_score",
 ]
