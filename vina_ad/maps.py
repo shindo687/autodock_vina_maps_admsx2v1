@@ -105,7 +105,10 @@ def _shape3(values: Any) -> tuple[int, int, int]:
             z = [list(column) for column in y[0]]
         except TypeError as exc:
             raise TypeError("grid values must have shape (nx, ny, nz)") from exc
-        result = (len(y), len(y[0]), len(z))
+        # ``z`` contains one entry for each Y column in the first X row;
+        # each entry is itself the Z column.  The third dimension therefore
+        # comes from the length of one column, not from the number of columns.
+        result = (len(y), len(y[0]), len(z[0]))
         if any(len(row) != result[1] for row in y) or any(
             len(column) != result[2] for row in y for column in row
         ):

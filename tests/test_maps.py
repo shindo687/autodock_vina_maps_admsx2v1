@@ -119,3 +119,41 @@ def test_load_maps_records_vina_header_and_matches_map_score(tmp_path: Path):
     # Vina writes maps with four significant decimal digits, so one
     # interpolation can differ from the in-memory map by a few 1e-4.
     assert actual == pytest.approx(expected, abs=2e-3)
+
+
+def test_non_cubic_nested_grid_and_anisotropic_vina_map(tmp_path: Path):
+    grid = _linear_grid(shape=(3, 5, 7))
+    affinity_grid = vina_ad.AffinityGrid(grid, center=(0.0, 0.0, 0.0), spacing=1.0)
+    assert affinity_grid.shape == (3, 5, 7)
+    point = ((0.25, 0.5, 0.75),)
+    assert vina_ad.interpolate_grid(affinity_grid, point) == pytest.approx(
+        (2 * point[0][0] + 3 * point[0][1] + 5 * point[0][2],)
+    )
+
+    # Vina map files use x-fastest order.  This anisotropic map has shape
+    # (NELEMENTS + 1) == (3, 5, 7), with a value that is linear in each axis.
+    values = []
+    for z in range(7):
+        for y in range(5):
+            for x in range(3):
+                values.append(str(x + 10 * y + 100 * z))
+    path = tmp_path / "maps.C_H.map"
+    path.write_text(
+        "\n".join(
+            [
+                "GRID_PARAMETER_FILE NULL",
+                "GRID_DATA_FILE NULL",
+                "MACROMOLECULE NULL",
+                "SPACING 1.0",
+                "NELEMENTS 2 4 6",
+                "CENTER 0 0 0",
+                *values,
+                "",
+            ]
+        )
+    )
+    maps = vina_ad.load_maps(tmp_path / "maps")
+    assert maps.shape == (3, 5, 7)
+    assert maps.box_size == (2.0, 4.0, 6.0)
+    assert maps.provenance["shape"] == (3, 5, 7)
+    assert vina_ad.interpolate_maps(maps, point, ("C_H",)) == pytest.approx((401.25,))
