@@ -21,4 +21,4 @@
 - Evidence bindings: implementation `vina_ad/core.py`; public exports
   `vina_ad/__init__.py`; workflow `vina_ad/workflow.py`; tests `tests/`;
   command totals and environment are in
-  `/root/ad_xjtan_v4pro/tasks/task-1/artifacts/fix_receipt_round1.json`.
+  `/Users/alex/ad_xjtan_v4pro_admsx2/tasks/task-2/artifacts/implementation_receipt.json`.
