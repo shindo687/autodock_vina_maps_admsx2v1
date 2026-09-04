@@ -9,6 +9,7 @@
 | `AffinityGrid`, `AffinityMaps`, `load_maps` | implemented | `maps.py`; parses Vina `SPACING`/`NELEMENTS`/`CENTER` headers, preserves x-fastest map-file ordering, validates shared provenance, and exposes `origin`, `box_size`, `shape`, and `provenance` |
 | `interpolate_grid` / `trilinear_interpolate` / `interpolate_maps` | implemented | strict trilinear interpolation on Vina's `n_voxels + 1` samples with JVP/VJP over grid values and coordinates; finite-difference and sample-weight tests in `tests/test_maps.py` |
 | `score_affinity_maps` / `score_maps` | implemented | atom-type map selection, map-value and local-coordinate derivatives, and optional Rodrigues-pose composition over translation and rotation; pose finite-difference test in `tests/test_maps.py` |
+| `transform_pose` | implemented | Rodrigues rotation-vector plus translation transform with direct JVP/VJP over coordinates, translation, and rotation; protocol test in `tests/test_maps.py` |
 | grid boundary behavior | explicit error | outside-box queries raise `GridBoundaryError`; coordinate derivatives at grid nodes/cell boundaries raise `NonDifferentiablePoint`; map-only derivatives remain defined there |
 | `vina.Vina.__init__`, configuration and text methods | not suitable | state, text, parsing, or file I/O; no continuous map |
 | map, pose and energy I/O methods | not suitable/deferred | file serialization or compiled binding state |

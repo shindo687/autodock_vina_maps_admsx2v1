@@ -71,6 +71,20 @@ def test_six_vector_pose_wrapper_and_aliases():
     assert len(gradient) == 6 and all(math.isfinite(item) for item in gradient)
 
 
+def test_transform_pose_jvp_vjp_protocol():
+    coordinates = ((0.2, 0.3, 0.4), (0.6, 0.2, -0.1))
+    translation = (0.1, -0.2, 0.05)
+    rotation = (0.06, -0.04, 0.03)
+    value, direction = vina_ad.jvp(vina_ad.transform_pose, coordinates, translation, rotation, tangents={"translation": (1.0, 2.0, 3.0)})
+    assert direction[0] == pytest.approx((1.0, 2.0, 3.0))
+    assert direction[1] == pytest.approx((1.0, 2.0, 3.0))
+    _, pullback = vina_ad.vjp(vina_ad.transform_pose, coordinates, translation, rotation, wrt=("coordinates", "translation", "rotation"))
+    result = pullback(((1.0, 2.0, 3.0), (4.0, 5.0, 6.0)))
+    assert result["translation"] == pytest.approx((5.0, 7.0, 9.0))
+    assert len(result["rotation"]) == 3
+    assert len(result["coordinates"]) == 2
+
+
 def test_grid_boundaries_are_explicit_and_map_only_derivative_is_defined():
     grid = _linear_grid()
     with pytest.raises(vina_ad.GridBoundaryError):

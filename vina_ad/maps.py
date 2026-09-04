@@ -650,6 +650,70 @@ def transform_pose(coordinates: Any, translation: Any = (0.0, 0.0, 0.0), rotatio
     return tuple(_transform_point(row, shift, angle) for row in rows)
 
 
+@rules.jvp_for(transform_pose)
+def _transform_pose_jvp(tangents: dict[str, Any], coordinates: Any, translation: Any = (0.0, 0.0, 0.0), rotation: Any = (0.0, 0.0, 0.0)) -> tuple[tuple[float, float, float], ...]:
+    supported = {"coordinates", "translation", "rotation"}
+    unsupported = set(tangents) - supported
+    if unsupported:
+        raise UnsupportedWrt(transform_pose, unsupported, supported=supported)
+    rows = _coordinate_rows(coordinates)
+    shift = _finite_vector(translation, "translation")
+    angle = _finite_vector(rotation, "rotation")
+    matrix = _rotation_matrix(angle)
+    coordinate_tangent = _coordinate_rows(tangents["coordinates"]) if tangents.get("coordinates", ZERO) is not ZERO else None
+    if coordinate_tangent is not None and len(coordinate_tangent) != len(rows):
+        raise ValueError("coordinates tangent must have shape (N, 3)")
+    translation_tangent = _finite_vector(tangents["translation"], "translation tangent") if tangents.get("translation", ZERO) is not ZERO else (0.0, 0.0, 0.0)
+    rotation_tangent = _finite_vector(tangents["rotation"], "rotation tangent") if tangents.get("rotation", ZERO) is not ZERO else (0.0, 0.0, 0.0)
+    outputs = []
+    for index, row in enumerate(rows):
+        tangent = [sum(matrix[i][j] * coordinate_tangent[index][j] for j in range(3)) if coordinate_tangent is not None else 0.0 for i in range(3)]
+        tangent = [tangent[i] + translation_tangent[i] for i in range(3)]
+        jacobians = _transform_jacobians(row, angle)
+        for parameter in range(3):
+            for component in range(3):
+                tangent[component] += jacobians[parameter][component] * rotation_tangent[parameter]
+        outputs.append(tuple(tangent))
+    return transform_pose(coordinates, translation, rotation), tuple(outputs)
+
+
+@rules.vjp_for(transform_pose)
+def _transform_pose_vjp(wrt: tuple[str, ...], coordinates: Any, translation: Any = (0.0, 0.0, 0.0), rotation: Any = (0.0, 0.0, 0.0)) -> tuple[tuple[tuple[float, float, float], ...], Any]:
+    supported = {"coordinates", "translation", "rotation"}
+    unsupported = set(wrt) - supported
+    if unsupported:
+        raise UnsupportedWrt(transform_pose, unsupported, supported=supported)
+    rows = _coordinate_rows(coordinates)
+    shift = _finite_vector(translation, "translation")
+    angle = _finite_vector(rotation, "rotation")
+    matrix = _rotation_matrix(angle)
+    outputs = transform_pose(coordinates, translation, rotation)
+
+    def pullback(cotangent: Any) -> dict[str, Any]:
+        if cotangent is ZERO:
+            return {name: ZERO for name in wrt}
+        try:
+            cotangent_rows = [list(row) for row in cotangent]
+        except TypeError as exc:
+            raise TypeError("transform_pose cotangent must have shape (N, 3)") from exc
+        if len(cotangent_rows) != len(rows) or any(len(row) != 3 for row in cotangent_rows):
+            raise ValueError("transform_pose cotangent must have shape (N, 3)")
+        result: dict[str, Any] = {}
+        if "coordinates" in wrt:
+            result["coordinates"] = _restore_rows(coordinates, [[sum(matrix[j][i] * cotangent_rows[row][j] for j in range(3)) for i in range(3)] for row in range(len(rows))])
+        if "translation" in wrt:
+            result["translation"] = _restore_vector(translation, tuple(sum(row[i] for row in cotangent_rows) for i in range(3)))
+        if "rotation" in wrt:
+            gradients = [0.0, 0.0, 0.0]
+            for row, cotangent_row in zip(rows, cotangent_rows):
+                for parameter, jacobian in enumerate(_transform_jacobians(row, angle)):
+                    gradients[parameter] += sum(cotangent_row[i] * jacobian[i] for i in range(3))
+            result["rotation"] = _restore_vector(rotation, tuple(gradients))
+        return result
+
+    return outputs, pullback
+
+
 def _score_map_linearisation(
     family: AffinityMaps,
     rows: list[list[float]],

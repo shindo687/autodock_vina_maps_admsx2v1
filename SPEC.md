@@ -117,7 +117,8 @@ map-value pullback has the same `AffinityMaps` geometry and sparse trilinear
 corner weights. As in upstream `cache::eval`, the default `clip_value=1000`
 applies the positive-value curl `1000*e/(1000+e)` and its chain-rule factor;
 `clip_value=None` returns the raw interpolated sum. `score_maps`, `grid_score`,
-and `pose_score` are aliases. `score_pose`/`pose_score` additionally accept a
+and `pose_score` are aliases. `transform_pose` exposes the same rigid
+composition as a standalone differentiable primitive. `score_pose`/`pose_score` additionally accept a
 single six-vector `(tx, ty, tz, rx, ry, rz)` and expose its JVP/VJP as `pose`.
 
 Map generation (`compute_vina_maps`) remains an imperative upstream call. A

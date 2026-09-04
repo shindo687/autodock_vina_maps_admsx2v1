@@ -132,6 +132,18 @@
       "dependency_chain": "score_pose -> score_affinity_maps -> interpolation",
       "oracle": "tests/test_maps.py::test_affinity_maps_pose_chain_rule_matches_finite_difference",
       "decision": "implemented convenience wrapper"
+    },
+    "vina_ad.transform_pose": {
+      "status": "implemented",
+      "reason": "differentiable rigid pose composition primitive",
+      "primal": "q=exp([rotation]x)*coordinates + translation",
+      "differentiable_inputs": ["coordinates", "translation", "rotation"],
+      "fixed_inputs": [],
+      "derivative_interface": "JVP/VJP/grad/value_and_grad",
+      "math_convention": "Rodrigues rotation vector and Cartesian translation",
+      "dependency_chain": "transform_pose -> Rodrigues matrix -> transformed coordinates",
+      "oracle": "tests/test_maps.py::test_transform_pose_jvp_vjp_protocol",
+      "decision": "implemented"
     }
   },
   "upstream_public_api": [
